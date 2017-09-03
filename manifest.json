@@ -1,20 +1,37 @@
 {
-  "manifest_version": 2,
-
-  "name": "webgraph",
-  "description": "This bad boy displays the web as a graph, centered on the current webpage",
-  "version": "1.0",
-  "browser_action": {
-    "default_icon": "images/icon.png",
-    "default_popup": "popup.html",
-    "default_title": "CLICK ME MOTHER FUCKER"
-  },
-  "background": {
-      "scripts": ["eventpage.js"],
-      "persistent": false,
-  },
-  "permissions": [
-    "activeTab",
-    "https://ajax.googleapis.com/"
-  ]
+    "manifest_version": 2,
+    "name": "webgraph",
+    "description": "This bad boy displays the web as a graph, centered on the current webpage",
+    "version": "1.0",
+    "browser_action": {
+        "default_icon": "images/icon.png",
+        "default_popup": "html/settings.html",
+        "default_title": "CLICK ME MOTHER FUCKER"
+    },
+    "background": {
+        "scripts": ["js/eventpage.js"],
+        "persistent": false
+    },
+    "permissions": [
+        "activeTab",
+        "https://ajax.googleapis.com/"
+    ],
+    "commands": {
+        "_execute_browser_action": {
+            "suggested_key": {
+                "mac": "Command+Shift+8"
+            }
+        },
+        "custom_command": {
+            "suggested_key": {
+                "mac": "Command+Shift+9"
+            },
+            "description": "Does some cool shit"
+        }
+    },
+    "content_scripts": [{
+        "css": ["css/styles.css"],
+        "js": ["js/content.js"],
+        "matches": ["https://blog.lateral.io/*"]
+    }]
 }
