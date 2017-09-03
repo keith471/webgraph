@@ -6,7 +6,7 @@
     "browser_action": {
         "default_icon": "images/icon.png",
         "default_popup": "html/settings.html",
-        "default_title": "CLICK ME MOTHER FUCKER"
+        "default_title": "CLICK ME FUCKER"
     },
     "background": {
         "scripts": ["js/eventpage.js"],
