@@ -30,7 +30,11 @@
             return new Node(url, neighbors);
         }
     }
-    
+
 - ensure no duplicate nodes (i.e. if a.com has a link to b.com and b.com has a link to a.com, then the edge between a.com and b.com should represent this. there should not be another edge from b.com to a new a.com node)
     - a----b OK
     - a----b----a NOT OK
+- there might be a shit ton of links on a page... need to just display some of them
+    - which ones to show?
+        - first group by base url, e.g. { www.wikipedia.com: [www.wikipedia.com/cool/beans, www.wikipedia.com/who/cares], ...}
+        - then maybe prioritize those that appear the most, or try to select one or two from each base url group
