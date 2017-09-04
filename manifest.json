@@ -9,12 +9,12 @@
         "default_title": "CLICK ME FUCKER"
     },
     "background": {
-        "scripts": ["js/eventpage.js"],
-        "persistent": false
+        "scripts": ["js/background.js"]
     },
     "permissions": [
         "activeTab",
-        "https://ajax.googleapis.com/"
+        "https://ajax.googleapis.com/",
+        "tabs"
     ],
     "commands": {
         "_execute_browser_action": {
@@ -22,16 +22,17 @@
                 "mac": "Command+Shift+8"
             }
         },
-        "custom_command": {
+        "webgraph": {
             "suggested_key": {
                 "mac": "Command+Shift+9"
             },
-            "description": "Does some cool shit"
+            "description": "Closes and opens the webgraph view"
         }
     },
-    "content_scripts": [{
-        "css": ["css/styles.css"],
-        "js": ["js/content.js"],
-        "matches": ["https://blog.lateral.io/*"]
-    }]
+    "content_scripts": [
+        {
+            "js": ["js/content.js"],
+            "matches": ["http://*/*", "https://*/*"]
+        }
+    ]
 }
