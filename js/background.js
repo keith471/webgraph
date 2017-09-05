@@ -9,7 +9,11 @@ chrome.commands.getAll(function(commands) {
 chrome.commands.onCommand.addListener(function(command) {
     if (command == 'webgraph') {
         // get the id of the active tab
-        chrome.tabs.query({currentWindow: true, active : true}, function(tabs) {
+        var queryParams = {
+            currentWindow: true,
+            active : true
+        };
+        chrome.tabs.query(queryParams, function(tabs) {
             console.log(tabs);
             if (tabs.length != 1) {
                 console.log('Make sure you\'ve seleced a chrome tab');
@@ -17,7 +21,7 @@ chrome.commands.onCommand.addListener(function(command) {
             }
             // we have a single, active tab - send a message to the content script
             // the second parameter is passed to the listener as the 'request' parameter (first one)
-            chrome.tabs.sendMessage(tabs[0].id, { command: 'webgraph' }, function(response) {
+            chrome.tabs.sendMessage(tabs[0].id, { command: 'webgraph', rootUrl: tabs[0].url }, function(response) {
                 console.log('Content script response:' + response);
             });
         });

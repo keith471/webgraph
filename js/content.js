@@ -2,26 +2,112 @@
 // For parsing the page for links when triggered
 //==============================================================================
 
+import Node from ./node.js;
+import LeafNode from ./leafNode.js;
+
+// a map of url to graph node
+var nodeMap = {};
+
+//==============================================================================
 // listen for incoming messages
-// request is
+//==============================================================================
+
+// request contains parameters sent to the listener
 // sender is an object containing the id of the plugin that sent the message - don't think this is relevant unless communicating with other plugins
 // sendResponse is a function which returns a response to the function that send the message
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    console.log(request);
-    console.log(sender);
-    console.log(sendResponse);
+    console.log('received message from background');
     if (request.command == 'webgraph') {
         // parse the html to get all the urls!
         var urls = getUrls();
-        console.log(urls.length);
-        console.log(urls[0]);
-        console.log(urls[1]);
-        // respond to background... really not needed at this point... or ever
-        sendResponse('eat shit');
-    } else if (request.action == 'getSource') {
-
+        // construct the webgraph from the urls
+        getRoot(request.rootUrl, urls, function(rootNode) {
+            console.log('we have the root!');
+            // add the root to the nodeMap
+            nodeMap[request.rootUrl] = rootNode;
+            // TODO use the root node to build the ui.....
+            console.log('now we need to build the ui from the root...');
+            // respond to background... really not needed at this point... or ever
+            sendResponse(rootNode);
+        });
     }
 });
+
+//==============================================================================
+// Graph construction
+//==============================================================================
+
+// get the root node of the graph (we root the graph at the url of the active tab)
+function getRoot(rootUrl, urls, cb) {
+    if (urls.length == 0) {
+        cb(new Node(rootUrl, []));
+        return;
+    }
+    // we extend the graph one bfs from the root
+    var level = 1;
+    // construct the neighbors of the root
+    var neighbors = [];
+    // count the number of neighbors we've made
+    var count = 0;
+    for (var i = 0; i < urls.length; i++) {
+        getNode(urls[i], level - 1, function(node) {
+            // add the node to neighbors
+            neighbors.push(node);
+            // don't forget to add the node to the nodeMap!
+            nodeMap[node.url] = node;
+            // use count hack in place of async module...figure out how to use npm modules with chrome extensions
+            // is there a race condition here?? js is single threaded but how does it context switch between async function returns?
+            count++;
+            if (count == urls.length) {
+                // construct and return the root via the callback
+                cb(new Node(rootUrl, neighbors));
+            }
+        });
+    }
+}
+
+function getNode(url, level, cb) {
+    // see if the graph already contains a node corresponding to this url, and if so return that node
+    if (map[url]) {
+        cb(map[url]);
+    }
+
+    // fetch the html for the url and, IN THE CALLBACK of the html fetcher, do the following
+    $.ajax({
+        url: url,
+        success: function(html) {
+            console.log(html);
+            // TODO get the urls from the html
+            var urls = [];
+            if (level == 0) {
+                // create and return a leaf node
+                cb(new LeafNode(url, urls));
+            } else {
+                if (urls.length == 0) {
+                    cb(new Node(url, []));
+                    return;
+                }
+                var neighbors = [];
+                var count = 0;
+                for (var i = 0; i < urls.length; i++) {
+                    getNode(urls[i], level - 1, function(node) {
+                        neighbors.push(node);
+                        nodeMap[node.url] = node;
+                        // race condition?
+                        count++;
+                        if (count == urls.length) {
+                            cb(new Node(url, neighbors));
+                        }
+                    });
+                }
+            }
+        }
+    });
+}
+
+//==============================================================================
+// Get urls from the active tab
+//==============================================================================
 
 function getUrls() {
     // get all the link elements in the document
@@ -50,7 +136,9 @@ function isUrl(href) {
 
 
 
+//==============================================================================
 // junk....
+//==============================================================================
 
 // never find a node with type ATTRIBUTE_NODE for some reason...
 function getLinksFromDocument(root) {
