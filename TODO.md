@@ -1,6 +1,12 @@
 
 
 # Keith
+- Use a node library for async retrieval of webpage instead of jquery which fucking sucks
+- refactor content.js to use new node package
+- Uncomment code in node.js and content.js and make sure it compiles and runs
+
+- Once code is working, see what the output is when running the extension on a webpage!
+
 - maybe it is simplest to represent the graph as a map
 {
     core_url: Node(core_url, webpage_title, list_of_core_urls, is_leaf),
@@ -19,7 +25,7 @@ We kick off the node creation starting with the root node:
     - for each url in its list of core_urls, we add an entry <url, true> to the map and call createNode(url, level) for the url
 - the following two urls map to the same site, but are different as strings: www.google.com and google.com
     - we need to parse just the relevant part of the url (google.com) and make that the "id" of the node
-    - this id is also what we should use when storing the node in the nodeMap
+    - this id is also what we should use when storing the node in the nodeMap - we call this the core url
 - when getting the urls on a page, remove self-links (shouldn't have to do this with new graph structure)
 - to avoid
 - content.js - figure out how to import ajax

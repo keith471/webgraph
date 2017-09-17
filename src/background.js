@@ -6,6 +6,9 @@ chrome.commands.getAll(function(commands) {
     console.log(commands);
 });
 
+/**
+ * Listen for commands from the user (e.g. short keys like CTRL+SHIFT+9)
+ */
 chrome.commands.onCommand.addListener(function(command) {
     if (command == 'webgraph') {
         // get the id of the active tab
@@ -31,3 +34,5 @@ chrome.commands.onCommand.addListener(function(command) {
 });
 
 console.log('Background script loaded.');
+
+// =END=

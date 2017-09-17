@@ -6,7 +6,6 @@ import Node from ./node.js;
 
 export default function LeafNode(url, neighborUrls) {
     this.url = url;
-    this.neighbors = undefined;
     this.neighborUrls = neighborUrls;
     this.isLeaf = true;
 }

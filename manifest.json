@@ -8,13 +8,20 @@
         "default_popup": "html/settings.html",
         "default_title": "CLICK ME FUCKER"
     },
-    "background": {
-        "scripts": ["js/background.js"]
-    },
     "permissions": [
         "activeTab",
         "https://ajax.googleapis.com/",
         "tabs"
+    ],
+    "background": {
+        "scripts": ["src/background.js"]
+    },
+    "content_scripts": [
+        {
+            "js": ["dist/bundle.js"],
+            "matches": ["http://*/*", "https://*/*"],
+            "run_at": "document_start"
+        }
     ],
     "commands": {
         "_execute_browser_action": {
@@ -28,11 +35,5 @@
             },
             "description": "Closes and opens the webgraph view"
         }
-    },
-    "content_scripts": [
-        {
-            "js": ["js/content.js"],
-            "matches": ["http://*/*", "https://*/*"]
-        }
-    ]
+    }
 }

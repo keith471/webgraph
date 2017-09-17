@@ -1,0 +1,27 @@
+{
+  "name": "webgraph",
+  "version": "1.0.0",
+  "description": "A Chrome plugin for visualizing the web.",
+  "main": "./src/content.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack --config webpack.config.js && webpack-dev-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/keith471/webgraph.git"
+  },
+  "author": "Keith Strickling",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/keith471/webgraph/issues"
+  },
+  "homepage": "https://github.com/keith471/webgraph#readme",
+  "devDependencies": {
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.0",
+    "babel-register": "^6.26.0",
+    "webpack": "^3.6.0",
+    "webpack-dev-server": "^2.8.2"
+  }
+}
