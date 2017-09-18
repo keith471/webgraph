@@ -2,17 +2,12 @@
 // For parsing the page for links when triggered
 //==============================================================================
 
+//var request = require('request');
+var http = require('http');
 var Node = require('./node');
 
-// get jquery
-/*
-var script = document.createElement('script');
-script.src = '//code.jquery.com/jquery-1.11.0.min.js';
-document.getElementsByTagName('head')[0].appendChild(script);
-*/
-
-// a map of url to graph node
-//var nodeMap = {};
+// the map of url to graph node
+var nodeMap = {};
 
 //==============================================================================
 // listen for incoming messages
@@ -25,7 +20,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     console.log('received message from background');
     if (request.command == 'webgraph') {
         // generate the graph
-        //generateGraph(request.rootUrl);
+        generateGraph(request.rootUrl);
         // respond to background... really not needed at this point... or ever
         sendResponse('test');
     }
@@ -35,7 +30,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 // Graph construction
 //==============================================================================
 
-/*
+/**
+ * Starts generation of the graph, rooting it at the url of the current page
+ */
 function generateGraph(rootUrl) {
     // remove www if need be
     var url = getUrl(rootUrl);
@@ -49,6 +46,10 @@ function generateGraph(rootUrl) {
     expand(root, 1);
 }
 
+/**
+ * This is where the magic happens. Recursively expands the graph outwards from
+ * the root up to levelsToExpand.
+ */
 function expand(root, levelsToExpand) {
     // base cases
     if (levelsToExpand == 0) {
@@ -56,19 +57,24 @@ function expand(root, levelsToExpand) {
     }
 
     if (root.isExpanded) {
+        // we've already expanded a node with the same url
         return;
     }
 
-    // set the root node as expanded
+    // we mark the node as expanded before completing expansion because one of its
+    // links could loop back to the current node and attempt to reexpand it
     root.isExpanded = true;
 
-    // expand it by generating a new node for each neighbor url
+    // expand the node by generating a new node for each neighbor url
     var urls = root.neighborUrls;
     for (var i = 0; i < urls.length; i++) {
-        generateNode(urls[i], function(node) {
-            if (!node.isExpanded) {
-                expand(node, levelsToExpand - 1);
+        generateNode(urls[i], function(err, node) {
+            if (err) {
+                // an error occurred generating the node, e.g. a 404 response was received
+                return;
             }
+            // recursively expand the new node
+            expand(node, levelsToExpand - 1);
         });
     }
 }
@@ -76,31 +82,81 @@ function expand(root, levelsToExpand) {
 function generateNode(url, cb) {
     // see if the graph already contains a node corresponding to this url
     if (nodeMap[url]) {
-        cb(nodeMap[url]);
+        cb(null, nodeMap[url]);
     }
 
-    // no node has been generated
-    $.ajax({
-        url: url,
-        success: function(html) {
-            console.log(html);
+    // generate a node for this url
+    http.get(url, (res) => {
+        if (res.statusCode !== 200) {
+            var err = new Error(`Request Failed. Status Code: ${statusCode}`);
+            console.log(err.message);
+            cb(err);
+            return;
+        }
+
+        res.setEncoding('utf8');
+
+        // collect the data returned to us
+        var rawData = '';
+        var count = 0;
+        res.on('data', (chunk) => {
+            rawData += chunk;
+            count++;
+            console.log(`received chunk ${count} for ${url}`);
+        });
+
+        // done collecting data
+        res.on('end', () => {
+            //console.log(`Body:\n${rawData}`);
+            console.log(`done collecting chunks for ${url}`);
             // parse the urls from the html string
-            var urls = parseUrlsFromHtml(html);
+            var urls = parseUrlsFromHtml(rawData);
             // add a new node to the nodeMap!!!
             var node = new Node(url, urls);
             nodeMap[url] = node;
-            cb(node);
-        }
+            cb(null, node);
+        });
+    }).on('error', (e) => {
+        var err = new Error(`Request failed due to error ${e.message}`);
+        console.log(err.message);
+        cb(err);
     });
+
+    /*
+    request(url, function(err, response, body) {
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        if (response.statusCode != 200) {
+            cb(response);
+            return;
+        }
+
+        // successful get request
+        // parse the urls from the html string
+        var urls = parseUrlsFromHtml(body);
+        // add a new node to the nodeMap!!!
+        var node = new Node(url, urls);
+        nodeMap[url] = node;
+        cb(null, node);
+    });
+    */
 }
 
 //==============================================================================
-// Get urls from the active tab
+// Get urls from a DOM object
 //==============================================================================
 
 function getUrls(document) {
     // get all the link elements in the document
     var linkElements = document.links;
+    if (linkElements == null) {
+        return [];
+    }
+
+    console.log(`Url count: ${linkElements.length}`);
 
     // collect the urls
     var urls = {};
@@ -116,16 +172,18 @@ function getUrls(document) {
     }
 
     // return just the urls as an array
+    var urlsAsArray = Object.keys(urls);
+    for (var i = 0; i < urlsAsArray.length; i++) {
+        console.log(urlsAsArray[i]);
+    }
     return Object.keys(urls);
 }
-*/
 
 /**
  * We have an href. Could be a url or could be something else. If a url, could be
  * apple.com/iphone or www.apple.com/iphone. We want both these urls to be considered
  * the same, so we remove the www.
  */
- /*
 function getUrl(href) {
     var re = /(?:https?:\/\/(www\.)?)?([-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4})\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
     var results = href.match(re);
@@ -151,7 +209,6 @@ function parseUrlsFromHtml(html) {
     elem.innerHtml = html;
     return getUrls(elem);
 }
-*/
 
 console.log('Content script loaded.');
 

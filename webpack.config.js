@@ -3,7 +3,7 @@
 //==============================================================================
 var path = require('path');
 
-module.exports = {
+var config = {
     entry: './src/content.js',
     output: {
         path: path.join(__dirname, 'dist'),
@@ -24,3 +24,16 @@ module.exports = {
     },
     devtool: 'source-map'
 };
+
+// so that the request module doesn't break webpack...
+// see https://github.com/request/request/issues/1529
+/*
+config.node = {
+    console: true,
+    fs: 'empty',
+    net: 'empty',
+    tls: 'empty'
+};
+*/
+
+module.exports = config;

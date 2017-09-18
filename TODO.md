@@ -1,11 +1,8 @@
 
 
 # Keith
-- Use a node library for async retrieval of webpage instead of jquery which fucking sucks
-- refactor content.js to use new node package
-- Uncomment code in node.js and content.js and make sure it compiles and runs
 
-- Once code is working, see what the output is when running the extension on a webpage!
+- need a way to know when we're done expanding a node... Maybe should use node async module
 
 - maybe it is simplest to represent the graph as a map
 {
