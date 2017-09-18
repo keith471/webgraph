@@ -6,6 +6,7 @@
 var http = require('http');
 var Node = require('./node');
 var ExpansionStatus = require('./expansionStatus');
+var NodeGenerationError = require('./error').NodeGenerationError;
 
 // the map of url to graph node
 var nodeMap = {};
@@ -38,16 +39,16 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 function expansionComplete(node, expansionStatus, results) {
     switch (expansionStatus) {
         case ExpansionStatus.ALREADY_EXPANDED:
-            console.log(`Node for {${node.url}} already expanded`);
+            //console.log(`Node for {${node.url}} already expanded`);
             break;
         case ExpansionStatus.AT_EXPANSION_LIMIT:
-            console.log(`Node for {${node.url}} at expansion limit`);
+            //console.log(`Node for {${node.url}} at expansion limit`);
             break;
         case ExpansionStatus.EXPANDED:
             console.log(`Node for {${node.url}} FULLY EXPANDED`);
             break;
         case ExpansionStatus.NOTHING_TO_EXPAND:
-            console.log(`Node for {${node.url}} has nothing to expand`);
+            //console.log(`Node for {${node.url}} has nothing to expand`);
             break;
     }
 }
@@ -130,7 +131,7 @@ function generateNode(url, cb) {
     http.get(url, (res) => {
         if (res.statusCode !== 200) {
             var err = new NodeGenerationError(url, `Request Failed. Status Code: ${statusCode}`);
-            console.log(err.message);
+            console.log(err.message + ` {${url}}`);
             cb(err);
             return;
         }
@@ -149,7 +150,7 @@ function generateNode(url, cb) {
         // done collecting data
         res.on('end', () => {
             //console.log(`Body:\n${rawData}`);
-            console.log(`done collecting chunks for ${url}`);
+            //console.log(`done collecting chunks for ${url}`);
             // parse the urls from the html string
             var urls = parseUrlsFromHtml(rawData);
             // add a new node to the nodeMap!!!
@@ -159,7 +160,7 @@ function generateNode(url, cb) {
         });
     }).on('error', (e) => {
         var err = new NodeGenerationError(url, `Request failed due to error ${e.message}`);
-        console.log(err.message);
+        console.log(err.message + ` {${url}}`);
         cb(err);
     });
 

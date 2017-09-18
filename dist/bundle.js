@@ -5047,6 +5047,8 @@ module.exports = __webpack_amd_options__;
 //var request = require('request');
 var http = __webpack_require__(20);
 var Node = __webpack_require__(41);
+var ExpansionStatus = __webpack_require__(42);
+var NodeGenerationError = __webpack_require__(43).NodeGenerationError;
 
 // the map of url to graph node
 var nodeMap = {};
@@ -5073,6 +5075,27 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 //==============================================================================
 
 /**
+ * This function is called when expansion for a node has completed
+ * We define "completed" as "a Node has been created for each url in the current node's html"
+ */
+function expansionComplete(node, expansionStatus, results) {
+    switch (expansionStatus) {
+        case ExpansionStatus.ALREADY_EXPANDED:
+            //console.log(`Node for {${node.url}} already expanded`);
+            break;
+        case ExpansionStatus.AT_EXPANSION_LIMIT:
+            //console.log(`Node for {${node.url}} at expansion limit`);
+            break;
+        case ExpansionStatus.EXPANDED:
+            console.log('Node for {' + node.url + '} FULLY EXPANDED');
+            break;
+        case ExpansionStatus.NOTHING_TO_EXPAND:
+            //console.log(`Node for {${node.url}} has nothing to expand`);
+            break;
+    }
+}
+
+/**
  * Starts generation of the graph, rooting it at the url of the current page
  */
 function generateGraph(rootUrl) {
@@ -5085,21 +5108,23 @@ function generateGraph(rootUrl) {
     // add the root to the map
     nodeMap[url] = root;
     // expand the root to generate more of the graph
-    expand(root, 1);
+    expand(root, 1, expansionComplete);
 }
 
 /**
  * This is where the magic happens. Recursively expands the graph outwards from
  * the root up to levelsToExpand.
  */
-function expand(root, levelsToExpand) {
+function expand(root, levelsToExpand, cb) {
     // base cases
     if (levelsToExpand == 0) {
+        cb(root, ExpansionStatus.AT_EXPANSION_LIMIT);
         return;
     }
 
     if (root.isExpanded) {
         // we've already expanded a node with the same url
+        cb(root, ExpansionStatus.ALREADY_EXPANDED);
         return;
     }
 
@@ -5109,14 +5134,31 @@ function expand(root, levelsToExpand) {
 
     // expand the node by generating a new node for each neighbor url
     var urls = root.neighborUrls;
+    var results = {};
+    var count = 0;
+    var numUrls = urls.length;
+
+    if (numUrls == 0) {
+        cb(root, ExpansionStatus.NOTHING_TO_EXPAND);
+        return;
+    }
+
     for (var i = 0; i < urls.length; i++) {
         generateNode(urls[i], function (err, node) {
             if (err) {
                 // an error occurred generating the node, e.g. a 404 response was received
-                return;
+                results[err.url] = err;
+            } else {
+                results[node.url] = node;
+                // recursively expand the new node
+                expand(node, levelsToExpand - 1, expansionComplete);
             }
-            // recursively expand the new node
-            expand(node, levelsToExpand - 1);
+            // increment the count of nodes generated
+            count++;
+            if (count == numUrls) {
+                // we've fully expanded the 'root' - let the caller know
+                cb(root, ExpansionStatus.EXPANDED, results);
+            }
         });
     }
 }
@@ -5130,8 +5172,8 @@ function generateNode(url, cb) {
     // generate a node for this url
     http.get(url, function (res) {
         if (res.statusCode !== 200) {
-            var err = new Error('Request Failed. Status Code: ' + statusCode);
-            console.log(err.message);
+            var err = new NodeGenerationError(url, 'Request Failed. Status Code: ' + statusCode);
+            console.log(err.message + ('{' + url + '}'));
             cb(err);
             return;
         }
@@ -5144,13 +5186,13 @@ function generateNode(url, cb) {
         res.on('data', function (chunk) {
             rawData += chunk;
             count++;
-            console.log('received chunk ' + count + ' for ' + url);
+            //console.log(`received chunk ${count} for ${url}`);
         });
 
         // done collecting data
         res.on('end', function () {
             //console.log(`Body:\n${rawData}`);
-            console.log('done collecting chunks for ' + url);
+            //console.log(`done collecting chunks for ${url}`);
             // parse the urls from the html string
             var urls = parseUrlsFromHtml(rawData);
             // add a new node to the nodeMap!!!
@@ -5159,8 +5201,8 @@ function generateNode(url, cb) {
             cb(null, node);
         });
     }).on('error', function (e) {
-        var err = new Error('Request failed due to error ' + e.message);
-        console.log(err.message);
+        var err = new NodeGenerationError(url, 'Request failed due to error ' + e.message);
+        console.log(err.message + ('{' + url + '}'));
         cb(err);
     });
 
@@ -8113,6 +8155,46 @@ function Node(url, neighborUrls) {
 }
 
 module.exports = Node;
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+//==============================================================================
+// Expansion statuses
+//==============================================================================
+
+module.exports = Object.freeze({
+    ALREADY_EXPANDED: 0, // the node has already been expanded
+    AT_EXPANSION_LIMIT: 1, // the node is at the edge of the expansion limit of the graph (i.e. simply at the edge of the graph - where we chose to stop expanding)
+    EXPANDED: 2, // the node has just been expanded
+    NOTHING_TO_EXPAND: 3 // the node's html contains no links
+});
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+//==============================================================================
+// Error classes
+//==============================================================================
+
+function NodeGenerationError(url, message) {
+    this.url = url;
+    this.message = message;
+}
+
+// inherit from Error
+NodeGenerationError.prototype = Object.create(Error.prototype);
+NodeGenerationError.prototype.constructor = Error;
+
+module.exports.NodeGenerationError = NodeGenerationError;
 
 /***/ })
 /******/ ]);
