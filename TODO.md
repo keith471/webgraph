@@ -2,8 +2,19 @@
 
 # Keith
 
-- need a way to know when we're done expanding a node... Maybe should use node async module
+## P1
+- replacing the html does not work well. The original page doesn't work properly when we transition back to it if we had removed the html previously. Instead, we need to modify the html to allow for an effect transition between the two pages
+    - what would be awesome is if we could place the original page inside some react element that we've designed such that we can collapse and expand it really easily. If we collapse it, then we see the graph. --> try to wrap the entire html into some react html!
 
+## P2
+- there might be a shit ton of links on a page... need to just display some of them
+    - which ones to show?
+        - first group by base url, e.g. { www.wikipedia.com: [www.wikipedia.com/cool/beans, www.wikipedia.com/who/cares], ...}
+        - then maybe prioritize those that appear the most, or try to select one or two from each base url group
+
+
+
+## Design decisions...
 - maybe it is simplest to represent the graph as a map
 {
     core_url: Node(core_url, webpage_title, list_of_core_urls, is_leaf),
@@ -24,17 +35,3 @@ We kick off the node creation starting with the root node:
     - we need to parse just the relevant part of the url (google.com) and make that the "id" of the node
     - this id is also what we should use when storing the node in the nodeMap - we call this the core url
 - when getting the urls on a page, remove self-links (shouldn't have to do this with new graph structure)
-- to avoid
-- content.js - figure out how to import ajax
-- try to run and see if code runs without errors
-- line 79 of content - get urls from html!!!
-- verify that the graph has been created! Then you'll have to talk with harry about constructing the html from the graph!
-- ensure no duplicate nodes (i.e. if a.com has a link to b.com and b.com has a link to a.com, then the edge between a.com and b.com should represent this. there should not be another edge from b.com to a new a.com node)
-    - a----b OK
-    - a----b----a NOT OK
-- there might be a shit ton of links on a page... need to just display some of them
-    - which ones to show?
-        - first group by base url, e.g. { www.wikipedia.com: [www.wikipedia.com/cool/beans, www.wikipedia.com/who/cares], ...}
-        - then maybe prioritize those that appear the most, or try to select one or two from each base url group
-- figure out how to use npm with chrome extensions
-- improve inefficiency associated with potentially constructing the same node twice... this roots from the fact that we decide to make a node if it does not already exist in the nodeMap when in fact we could already be in the process of constructing that node, and it has simply yet to be added. One solution would be to check that if the node is already being constructed (i.e. just its url is in the map) and listen for a node creation event that can be emitted with the node's url once it has been made.

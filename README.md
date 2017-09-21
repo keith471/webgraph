@@ -8,8 +8,8 @@
 
 
 ## To test
-1. After making changes to the code, you'll need to run webpack again: `npm start`
-    - This should be better... You shouldn't have to quit and restart webpack every time...
+1. After making changes to the code, you'll need to run webpack: `npm start`
+    - *TODO*: This should be better... You shouldn't have to quit and restart webpack every time...
 2. Load (or refresh) the extension
     - To load:
         - navigate [here](chrome://extensions/)

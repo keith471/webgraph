@@ -8,8 +8,29 @@ var Node = require('./node');
 var ExpansionStatus = require('./expansionStatus');
 var NodeGenerationError = require('./error').NodeGenerationError;
 
-// the map of url to graph node
-var nodeMap = {};
+// this is our representation of the webgraph - a map of url to graph node
+var nodeMap = undefined;
+
+// the html for the graph
+var wgHtml = '<p>This is a test bitch</p>';
+
+// the html for the webpage
+var pageHtml = document.documentElement.innerHTML;
+
+console.log(pageHtml);
+
+// whether the graph is currently being displayed or not
+var inWgMode = false;
+
+// switch between showing the webgraph and the original webpage
+function toggleWebgraph() {
+    if (inWgMode) {
+        document.documentElement.innerHTML = pageHtml;
+    } else {
+        document.documentElement.innerHTML = wgHtml;
+    }
+    inWgMode = !inWgMode;
+}
 
 //==============================================================================
 // listen for incoming messages
@@ -21,10 +42,18 @@ var nodeMap = {};
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     console.log('received message from background');
     if (request.command == 'webgraph') {
-        // generate the graph
-        generateGraph(request.rootUrl);
+        // toggle the webgraph
+        toggleWebgraph();
+
+        // if we haven't already generated the graph, then generate it
+        if (nodeMap == undefined) {
+            nodeMap = {};
+            // generate the graph
+            generateGraph(request.rootUrl);
+        }
+
         // respond to background... really not needed at this point... or ever
-        sendResponse('test');
+        sendResponse('message received');
     }
 });
 
