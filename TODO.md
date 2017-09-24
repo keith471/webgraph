@@ -3,8 +3,20 @@
 # Keith
 
 ## P1
-- replacing the html does not work well. The original page doesn't work properly when we transition back to it if we had removed the html previously. Instead, we need to modify the html to allow for an effect transition between the two pages
-    - what would be awesome is if we could place the original page inside some react element that we've designed such that we can collapse and expand it really easily. If we collapse it, then we see the graph. --> try to wrap the entire html into some react html!
+- Option 1: open up a new window
+    - get the html using the content script (only the content script can access the dom) and pass the html back to the background script (only the background script has access to chrome.windows)
+    - run all logic in the background script for constructing the graph and displaying it
+- Option 2: try to modify the html of the webpage before it loads
+    - inject it into some react wrapper that allows for easy transition between the graph and the webpage
+    - add a div container to the html for your react page
+    - place all the other body html inside a div
+    - so you have
+    <body>
+        <div>All the html for the page</div>
+        <div>Your react container</div>
+    </body>
+    - when you toggle the webgraph, you simply show or hide either div
+- use a window manager like in fast tab switcher
 
 ## P2
 - there might be a shit ton of links on a page... need to just display some of them

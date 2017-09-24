@@ -5050,29 +5050,34 @@ var Node = __webpack_require__(41);
 var ExpansionStatus = __webpack_require__(42);
 var NodeGenerationError = __webpack_require__(43).NodeGenerationError;
 
+// Run all the following logic on page load
+
 // this is our representation of the webgraph - a map of url to graph node
 var nodeMap = undefined;
-
-// the html for the graph
-var wgHtml = '<p>This is a test bitch</p>';
-
-// the html for the webpage
-var pageHtml = document.documentElement.innerHTML;
-
-console.log(pageHtml);
 
 // whether the graph is currently being displayed or not
 var inWgMode = false;
 
-// switch between showing the webgraph and the original webpage
-function toggleWebgraph() {
-    if (inWgMode) {
-        document.documentElement.innerHTML = pageHtml;
-    } else {
-        document.documentElement.innerHTML = wgHtml;
-    }
-    inWgMode = !inWgMode;
+// make a div the parent of all the body's children, and make the div the child of the body
+var nativeDiv = document.createElement('div');
+// TODO: it is possible that the html already contains an element with this id
+nativeDiv.id = 'native';
+// Move the body's children into the nativeDiv
+while (document.body.firstChild) {
+    nativeDiv.appendChild(document.body.firstChild);
 }
+document.body.appendChild(nativeDiv);
+
+// Inject the React div into the html
+var wgDiv = document.createElement('div');
+// TODO: it is possible that the html already contains an element with this id
+wgDiv.id = 'wg';
+wgDiv.style.display = 'none';
+var p = document.createElement('p');
+var text = document.createTextNode('This is a test');
+p.appendChild(text);
+wgDiv.appendChild(p);
+document.body.appendChild(wgDiv);
 
 //==============================================================================
 // listen for incoming messages
@@ -5098,6 +5103,20 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         sendResponse('message received');
     }
 });
+
+// switch between showing the webgraph and the original webpage
+function toggleWebgraph() {
+    if (inWgMode) {
+        // hide the webgraph
+        wgDiv.style.display = 'none';
+        nativeDiv.style.display = 'block';
+    } else {
+        // show the webgraph
+        nativeDiv.style.display = 'none';
+        wg.style.display = 'block';
+    }
+    inWgMode = !inWgMode;
+}
 
 //==============================================================================
 // Graph construction
@@ -5234,26 +5253,6 @@ function generateNode(url, cb) {
         console.log(err.message + (' {' + url + '}'));
         cb(err);
     });
-
-    /*
-    request(url, function(err, response, body) {
-        if (err) {
-            cb(err);
-            return;
-        }
-         if (response.statusCode != 200) {
-            cb(response);
-            return;
-        }
-         // successful get request
-        // parse the urls from the html string
-        var urls = parseUrlsFromHtml(body);
-        // add a new node to the nodeMap!!!
-        var node = new Node(url, urls);
-        nodeMap[url] = node;
-        cb(null, node);
-    });
-    */
 }
 
 //==============================================================================

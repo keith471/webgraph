@@ -14,7 +14,7 @@ chrome.commands.onCommand.addListener(function(command) {
         // get the id of the active tab
         var queryParams = {
             currentWindow: true,
-            active : true
+            active: true
         };
         chrome.tabs.query(queryParams, function(tabs) {
             console.log(tabs);
@@ -22,6 +22,23 @@ chrome.commands.onCommand.addListener(function(command) {
                 console.log('Make sure you\'ve seleced a chrome tab');
                 return;
             }
+
+            // create the webgraph window
+            /*
+            var opts = {
+                width: 200,
+                height: 200,
+                left: 100,
+                top: 100,
+                url: chrome.runtime.getURL('html/test.html'),
+                focused: true,
+                type: 'popup'
+            };
+            chrome.windows.create(opts, function(window) {
+                // contains info about the created window
+            });
+            */
+
             // we have a single, active tab - send a message to the content script
             // the second parameter is passed to the listener as the 'request' parameter (first one)
             chrome.tabs.sendMessage(tabs[0].id, { command: 'webgraph', rootUrl: tabs[0].url }, function(response) {
