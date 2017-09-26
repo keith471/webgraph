@@ -7,6 +7,29 @@ var http = require('http');
 var Node = require('./node');
 var ExpansionStatus = require('./expansionStatus');
 var NodeGenerationError = require('./error').NodeGenerationError;
+var React = require('react');
+var ReactDOM = require('react-dom');
+
+/*
+var HelloMessage = React.createClass({
+  displayName: "HelloMessage",
+
+  render: function render() {
+    return React.createElement(
+      "div",
+      null,
+      "Hello ",
+      this.props.name
+    );
+   }
+});
+*/
+
+class App extends React.Component {
+  render() {
+    return <h1>App was injected.</h1>
+  }
+};
 
 // Run all the following logic on page load
 
@@ -31,11 +54,9 @@ var wgDiv = document.createElement('div');
 // TODO: it is possible that the html already contains an element with this id
 wgDiv.id = 'wg';
 wgDiv.style.display = 'none';
-var p = document.createElement('p');
-var text = document.createTextNode('This is a test');
-p.appendChild(text);
-wgDiv.appendChild(p);
 document.body.appendChild(wgDiv);
+
+ReactDOM.render(<App/>, wgDiv);
 
 //==============================================================================
 // listen for incoming messages

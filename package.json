@@ -20,7 +20,11 @@
   "devDependencies": {
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.0",
+    "babel-preset-react": "^6.24.1",
     "babel-register": "^6.26.0",
+    "jsx-loader": "^0.13.2",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1",
     "webpack": "^3.6.0",
     "webpack-dev-server": "^2.8.2"
   }

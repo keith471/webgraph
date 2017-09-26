@@ -18,8 +18,10 @@
     },
     "content_scripts": [
         {
-            "js": ["dist/bundle.js"],
-            "matches": ["http://*/*", "https://*/*"]
+            "js": [
+                "dist/bundle.js"
+            ],
+            "matches": ["<all_urls>"]
         }
     ],
     "commands": {
